@@ -3,9 +3,8 @@
  * PString
  *
  * @category PHP
- * @package Mol_DataType
  * @author Matthias Molitor <matthias@matthimatiker.de>
- * @author Matthias Molitor <matthias@matthimatiker.de>
+ * @author Daniel Pozzi <bonndan76@googlemail.com>
  * 
  * @copyright 2012 Matthias Molitor
  * @license http://www.opensource.org/licenses/BSD-3-Clause BSD License
@@ -172,9 +171,6 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     /**
      * Converts the string into the requested charset.
      *
-     * The current string object is not modified, but a new one
-     * that uses the requested charset is created.
-     *
      * @param string $charset
      * @return PString The string in the requested charset.
      */
@@ -189,8 +185,9 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
             return $this;
         }
         
-        $converted = iconv($this->charset, (string)$charset . '//TRANSLIT', $this->value);
-        return $this->createString($converted, $charset);
+        $this->value = iconv($this->charset, (string)$charset . '//TRANSLIT', $this->value);
+        $this->charset = $charset;
+        return $this;
     }
     
     /**
@@ -281,7 +278,7 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function startsWith($prefix)
     {
-        return strpos($this->value, $this->toValue($prefix)) === 0;
+        return mb_strpos($this->value, $this->toValue($prefix)) === 0;
     }
     
     /**
@@ -295,7 +292,7 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     {
         $suffix = $this->toValue($suffix);
         $expectedPosition = mb_strlen($this->value) - mb_strlen($suffix);
-        return strrpos($this->value, $suffix) === $expectedPosition;
+        return mb_strrpos($this->value, $suffix) === $expectedPosition;
     }
     
     /**
@@ -364,11 +361,11 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     public function removePrefix($prefix)
     {
         $prefix = $this->toValue($prefix);
-        if (!$this->startsWith($prefix)) {
-            return $this;
+        if ($this->startsWith($prefix)) {
+            $this->value = substr($this->value, mb_strlen($prefix));
         }
         
-        return $this->createString(substr($this->value, strlen($prefix)));
+        return $this;
     }
     
     /**
@@ -436,7 +433,9 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
             $replace = $search;
             $search  = array_keys($searchOrMapping);
         }
-        return $this->createString(self::_replace($this->value, $search, $replace));
+        
+        $this->value = self::_replace($this->value, $search, $replace);
+        return $this;
     }
     
     protected static function _replace($subject, $searchOrMapping, $replace = null)
@@ -447,11 +446,12 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
             $search  = array_keys($searchOrMapping);
             $replace = array_values($searchOrMapping);
         }
+        
         return str_replace($search, $replace, $subject);
     }
     
     /**
-     * Extracts the requested substring.
+     * Returns a new string which contains the requested substring.
      *
      * Starts at $startIndex and extracts $length characters.
      * If $length is not provided then the substring will
@@ -464,7 +464,7 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     public function subString($startIndex, $length = null)
     {
         $subString = $this->rawSubString($startIndex, $length);
-        return $this->createString($subString);
+        return new self($subString, $this->charset);
     }
     
     /**
@@ -494,8 +494,8 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function toUpperCase()
     {
-        $upper = mb_strtoupper($this->value, $this->charset);
-        return $this->createString($upper);
+        $this->value = mb_strtoupper($this->value, $this->charset);
+        return $this;
     }
     
     /**
@@ -517,8 +517,8 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function trim($characters = null)
     {
-        $trimmed = $this->applyTrim('trim', $characters);
-        return $this->createString($trimmed);
+        $this->value = $this->applyTrim('trim', $characters);
+        return $this;
     }
     
     /**
@@ -529,8 +529,8 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function trimLeft($characters = null)
     {
-        $trimmed = $this->applyTrim('ltrim', $characters);
-        return $this->createString($trimmed);
+        $this->value = $this->applyTrim('ltrim', $characters);
+        return $this;
     }
     
     /**
@@ -541,8 +541,8 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function trimRight($characters = null)
     {
-        $trimmed = $this->applyTrim('rtrim', $characters);
-        return $this->createString($trimmed);
+        $this->value = $this->applyTrim('rtrim', $characters);
+        return $this;
     }
     
     /**
@@ -552,17 +552,16 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function reverse()
     {
-        $characters = $this->toCharacters();
-        $characters = array_reverse($characters);
-        $inverted   = implode('', $characters);
-        return $this->create($inverted);
+        $characters  = array_reverse($this->toCharArray());
+        $this->value = implode('', $characters);
+        return $this;
     }
     
     /**
      * Adds the provided string to the end of this string.
      *
      * @param string|PString $string
-     * @return PString The concatenated string.
+     * @return PString The string with concatenated.
      */
     public function concat($string)
     {
@@ -570,7 +569,9 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
         if ($this->getLengthInBytes($string) === 0) {
             return $this;
         }
-        return $this->createString($this->value . $string);
+        
+        $this->value .= $string;
+        return $this;
     }
     
     /**
@@ -590,11 +591,25 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     }
     
     /**
+     * Returns the character at the specified index.
+     * 
+     * Uses ArrayAccess internally.
+     * 
+     * @param int $index
+     * @return string
+     * @throws OutOfBoundsException
+     */
+    public function charAt($index)
+    {
+        return $this[$index];
+    }
+    
+    /**
      * Converts the string into an array of characters.
      *
      * @return array(string) The characters in order of occurrence in the string.
      */
-    public function toCharacters()
+    public function toCharArray()
     {
         if ($this->characters === null) {
             $this->characters = array();
@@ -613,7 +628,7 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function getIterator()
     {
-        return new ArrayIterator($this->toCharacters());
+        return new ArrayIterator($this->toCharArray());
     }
     
     /**
@@ -703,6 +718,45 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     }
     
     /**
+     * Returns the PString representation of the argument.
+     * 
+     * Uses string casting of PHP if the value is not a PString
+     * 
+     * @param mixed $arg
+     * @param string|PCharset $charset the desired charset
+     * @return PString
+     */
+    public static function valueOf($arg, $charset = null)
+    {
+        if ($arg instanceof self) {
+            if ($arg->getCharset()->equals($charset)) {
+                return $arg;
+            } else {
+                return $arg->convertTo($charset);
+            }
+        }
+        
+        return new self((string)$arg, $charset);
+    }
+    
+    /**
+     * Returns a formatted PString using the specified format string and arguments.
+     * 
+     * Uses vsprintf internally. The charset is optional.
+     * 
+     * @param string|Pstring $string
+     * @param array          $args
+     * @param PCharset       $args
+     * @return PString
+     */
+    public static function format($string, array $args, $charset = null)
+    {
+        $format = self::create($string, $charset);
+        $value = vsprintf($format, $args);
+        return new self($value, $charset);
+    }
+    
+    /**
      * Returns the raw string (no string object).
      *
      * @return string
@@ -747,30 +801,44 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     public function offsetGet($index)
     {
+        $this->assertIndexExists($index);
+        
+        $characters = $this->toCharArray();
+        return $characters[$index];
+    }
+    
+    /**
+     * Overwrites the character a at given position with the second argument.
+     *
+     * @param integer $index
+     * @param mixed $value
+     * @throws OutOfBoundsException If an invalid index was provided.
+     */
+    public function offsetSet($index, $value)
+    {
+        $this->assertIndexExists($index);
+        
+        $characters = $this->toCharArray();
+        $characters[$index] = self::valueOf($value)->toString();
+        $this->value = implode('', $characters);
+        
+        return $this;
+    }
+    
+    /**
+     * asserts that an index exists
+     * 
+     * @param int $index
+     * @throws OutOfBoundsException
+     */
+    protected function assertIndexExists($index)
+    {
         if (!isset($this[$index])) {
             $template = '"%s" is not a valid index. Valid indexes span from 0 to %s.';
             $message  = sprintf($template, $index, ($this->length() - 1));
             throw new OutOfBoundsException($message);
         }
-        $characters = $this->toCharacters();
-        return $characters[$index];
     }
-    
-    /**
-     * Overwriting characters is not supported.
-     *
-     * This method is implemented, because it is required by ArrayAccess.
-     * It will always throw an exception.
-     *
-     * @param integer $index
-     * @param string $value
-     * @throws LogicException Always, as overwriting characters is not supported.
-     */
-    public function offsetSet($index, $value)
-    {
-        throw new LogicException('Overwriting characters is not supported.');
-    }
-    
     /**
      * Deleting characters is not supported.
      *
@@ -783,23 +851,6 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
     public function offsetUnset($index)
     {
         throw new LogicException('Deleting characters is not supported.');
-    }
-    
-    /**
-     * Creates a new string object with the provided charset.
-     *
-     * If the charset is omitted then the current charset will be used.
-     *
-     * @param string $string
-     * @param string|null $charset
-     * @return PString
-     */
-    protected function createString($string, $charset = null)
-    {
-        if ($charset === null) {
-            $charset = $this->charset;
-        }
-        return self::create($string, $charset);
     }
     
     /**
@@ -849,7 +900,7 @@ class PString implements IteratorAggregate, ArrayAccess, Countable
      */
     protected function getLengthInBytes($string)
     {
-        return strlen($string);
+        return mb_strlen($string);
     }
     
     /**

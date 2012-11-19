@@ -120,6 +120,16 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
+     * Ensures convertTo does not return copies
+     */
+    public function testConvertToReturnsSameObject()
+    {
+        $object    = $this->create('test');
+        $converted = $object->convertTo(PCharset::LATIN1);
+        $this->assertSame($object, $converted);
+    }
+    
+    /**
      * Checks if convertTo() converts the string into the requested charset.
      */
     public function testConvertChangesCharsetOfOriginalString()
@@ -804,30 +814,30 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
-     * Checks if toCharacters() returns an array.
+     * Checks if toCharArray() returns an array.
      */
     public function testToCharactersReturnsArray()
     {
-        $characters = $this->create('abcde')->toCharacters();
+        $characters = $this->create('abcde')->toCharArray();
         $this->assertInternalType('array', $characters);
     }
     
     /**
-     * Checks if toCharacters() returns the expected number of characters.
+     * Checks if toCharArray() returns the expected number of characters.
      */
     public function testToCharactersReturnsExpectedNumberOfCharacters()
     {
-        $characters = $this->create('abcde')->toCharacters();
+        $characters = $this->create('abcde')->toCharArray();
         $this->assertInternalType('array', $characters);
         $this->assertEquals(5, count($characters));
     }
     
     /**
-     * Ensures that toCharacters() returns the correct characters.
+     * Ensures that toCharArray() returns the correct characters.
      */
     public function testToCharactersReturnsCorrectCharacters()
     {
-        $characters = $this->create('abcde')->toCharacters();
+        $characters = $this->create('abcde')->toCharArray();
         $this->assertInternalType('array', $characters);
         $this->assertContains('a', $characters);
         $this->assertContains('b', $characters);
@@ -837,11 +847,11 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
-     * Checks if toCharacters() returns the characters in correct order.
+     * Checks if toCharArray() returns the characters in correct order.
      */
     public function testToCharactersReturnsCharactersInCorrectOrder()
     {
-        $characters = $this->create('edcba')->toCharacters();
+        $characters = $this->create('edcba')->toCharArray();
         $this->assertInternalType('array', $characters);
         $expected = array(
             'e',
@@ -854,12 +864,12 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
-     * Checks if toCharacters() handles multi-byte characters (for example
+     * Checks if toCharArray() handles multi-byte characters (for example
      * umlauts) correctly.
      */
     public function testToCharactersWorksWithUmlauts()
     {
-        $characters = $this->create('äbcü')->toCharacters();
+        $characters = $this->create('äbcü')->toCharArray();
         $this->assertInternalType('array', $characters);
         $expected = array(
             'ä',
@@ -1201,6 +1211,16 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
+     * Ensures reverse returns the original object
+     */
+    public function testReverseReturnsSameString()
+    {
+        $object = $this->create('äöü');
+        $inverted = $object->reverse();
+        $this->assertSame($object, $inverted);
+    }
+    
+    /**
      * Checks if splitAt() returns an array.
      */
     public function testSplitAtReturnsArray()
@@ -1315,12 +1335,14 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
-     * Checks if concat() returns a string object.
+     * Checks if concat() returns the same string object.
      */
-    public function testConcatReturnsStringObject()
+    public function testConcatReturnsSameStringObject()
     {
-        $result = $this->create('abc')->concat('xyz');
-        $this->assertStringObject($result);
+        $result  = $this->create('abc');
+        $result2 = $result->concat('xyz');
+        $this->assertStringObject($result2);
+        $this->assertSame($result, $result2);
     }
     
     /**
@@ -1457,14 +1479,53 @@ class PStringTest extends PHPUnit_Framework_TestCase
     }
     
     /**
-     * Ensures that offsetSet() throws an exception as this method
-     * is not supposed to be called.
+     * charAt is the same as arrayAccess
      */
-    public function testOffsetSetThrowsException()
+    public function testCharAt()
     {
-        $this->setExpectedException('LogicException');
+        $object = $this->create('äüö');
+        $this->assertEquals('ü', $object->charAt(1));
+    }
+    
+    /**
+     * charAt is the same as arrayAccess
+     */
+    public function testCharAtException()
+    {
+        $object = $this->create('äüö');
+        $this->setExpectedException('OutOfBoundsException');
+        $object->charAt(5);
+    }
+    
+    /**
+     * Ensures that offsetSet() replaces the desired character
+     */
+    public function testOffsetSet()
+    {
         $object = $this->create('abc');
-        $object[0] = 'z';
+        $object[2] = 'z';
+        $this->assertEquals('abz', $object->toString());
+    }
+    
+    /**
+     * Ensures that offsetSet() replaces the desired character
+     */
+    public function testOffsetSetMultiByte()
+    {
+        $object = $this->create('abc');
+        $object[2] = 'Ä';
+        $this->assertEquals('abÄ', $object->toString());
+    }
+    
+    
+    /**
+     * Ensures that offsetSet() throws an out of bounds exception
+     */
+    public function testOffsetSetThrowsOutOfBoundsException()
+    {
+        $this->setExpectedException('OutOfBoundsException');
+        $object = $this->create('abc');
+        $object[4] = 'z';
     }
     
     /**
@@ -1498,6 +1559,80 @@ class PStringTest extends PHPUnit_Framework_TestCase
         $pstring = new PString($raw);
         
         $this->assertEquals(md5($raw), $pstring->hashCode()->toString());
+    }
+    
+    public function valueOfProvider()
+    {
+        return array(
+            array('abc', 'abc'),
+            array('', ''),
+            array(null, ''),
+            array(0, '0'),
+            array(1, '1'),
+            array(-1.0, '-1.0'),
+            array((float)-0.00000000345, '-0.00000000345'),
+            array((double)-0.00000000345, '-0.00000000345'),
+            array(new PString('abc'), 'abc'),
+        );
+    }
+    
+    /**
+     * @dataProvider valueOfProvider
+     * 
+     * @param mixed $type
+     * @param string $expected
+     */
+    public function testValueOf($type, $expected)
+    {
+        $string = Pstring::valueOf($type);
+        $this->assertStringObject($string);
+        $this->assertEquals($expected, $string->toString());
+    }
+    
+    /**
+     * ensures that the same object is returned by valueOf
+     */
+    public function testValueOfReturnsSamePString()
+    {
+        $string = new PString('abc');
+        $this->assertSame($string, Pstring::valueOf($string));
+    }
+    
+    /**
+     * ensures that the same object is returned by valueOf
+     */
+    public function testValueOfReturnsSamePStringWithDefinedCharset()
+    {
+        $string = new PString('äüßa');
+        $this->assertSame($string, Pstring::valueOf($string, new PCharset()));
+    }
+    
+    /**
+     * ensures that the same object is returned by valueOf
+     */
+    public function testValueOfReturnsSamePStringWithDifferentCharset()
+    {
+        $string = new PString('abcä', PCharset::LATIN1);
+        $this->assertSame($string, Pstring::valueOf($string, new PCharset(PCharset::UTF8)));
+    }
+    
+    /**
+     * tests the format function
+     */
+    public function testFormat()
+    {
+        $string = Pstring::format("An %s", array('Äpple'));
+        $this->assertStringObject($string);
+        $this->assertEquals("An Äpple", $string->toString());
+    }
+    
+    /**
+     * weak test. expects a phpunit error if vsprint is called with too few args
+     */
+    public function testFormatWithTooFewArgs()
+    {
+        $this->setExpectedException('PHPUnit_Framework_Error', 'Too few arguments');
+        $string = Pstring::format("An %s %s", array('Äpple'));
     }
     
     /**
