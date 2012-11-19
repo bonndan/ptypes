@@ -52,6 +52,28 @@ class PCharsetTest extends PHPUnit_Framework_TestCase
         $this->assertFalse($result);
     }
     
+    /**
+     * @dataProvider emptyValueProvider
+     * @param type $value
+     */
+    public function testEqualsReturnsFalseForEmptyValues($value)
+    {
+        $charset = new PCharset(PCharset::UTF8);
+        $result = $charset->equals($value);
+        $this->assertFalse($result);
+    }
+    
+    public function emptyValueProvider()
+    {
+        return array(
+            array(0),
+            array(''),
+            array('0'),
+            array(null),
+            array(false),
+        );
+    }
+    
     public function testAssertStringHasSameCharset()
     {
         $string = 'testäö';

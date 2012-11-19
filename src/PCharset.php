@@ -128,6 +128,9 @@ class PCharset
      */
     public function equals($charset)
     {
+        if (empty($charset)) {
+            return false;
+        }
         $charset = (string)$charset;
         $this->assertCharset($charset);
         return $this->charset == $this->unifyCharset($charset);
