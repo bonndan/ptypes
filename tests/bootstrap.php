@@ -7,3 +7,4 @@ require_once  'PCharset.php';
 require_once  'PType.php';
 require_once  'PString.php';
 require_once  'PNumber.php';
+require_once  'PInteger.php';
