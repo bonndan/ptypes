@@ -65,36 +65,8 @@
  * @link https://github.com/Matthimatiker/MolComponents
  * @since 14.06.2012
  */
-class PString implements IteratorAggregate, ArrayAccess, Countable
+class PString extends PType implements IteratorAggregate, ArrayAccess, Countable
 {
-    
-    /**
-     * Returns value used by compareTo().
-     *
-     * Indicates that this string is less than the compared one.
-     *
-     * @var integer
-     */
-    const COMPARE_LESS_THAN_OTHER = -1;
-    
-    /**
-     * Returns value used by compareTo().
-     *
-     * Indicates that this string equals the compared one.
-     *
-     * @var integer
-     */
-    const COMPARE_EQUALS_OTHER = 0;
-    
-    /**
-     * Returns value used by compareTo().
-     *
-     * Indicates that this string is greater than the compared one.
-     *
-     * @var integer
-     */
-    const COMPARE_GREATER_THAN_OTHER = 1;
-
     /**
      * The raw string value.
      *
