@@ -8,3 +8,4 @@ require_once  'PType.php';
 require_once  'PString.php';
 require_once  'PNumber.php';
 require_once  'PInteger.php';
+require_once  'PBool.php';
