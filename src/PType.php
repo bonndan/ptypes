@@ -33,9 +33,9 @@ abstract class PType
     
     /**
      * the "native" php value
-     * @var mixed
+     * @var string|int|bool|float|double|null
      */
-    protected $value;
+    private $value;
 
     /**
      * casts the inner value to string
@@ -44,7 +44,30 @@ abstract class PType
      */
     public function __toString()
     {
-        return (string) $this->value;
+        return (string) $this->getInternalValue();
     }
 
+    /**
+     * ensures the interval value is a php native type
+     * 
+     * @param string|int|bool|float|double|null $value
+     * @throws LogicException
+     */
+    protected function setInternalValue($value)
+    {
+        if (is_object($value)) {
+            throw new LogicException('The inner value must not be an object.');
+        }
+        
+        $this->value = $value;
+    }
+    
+    /**
+     * returns the internal value
+     * @return string|int|bool|float|double|null
+     */
+    protected function getInternalValue()
+    {
+        return $this->value;
+    }
 }

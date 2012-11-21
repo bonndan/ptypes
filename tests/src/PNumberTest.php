@@ -109,6 +109,6 @@ class PNumberMock extends PNumber
 {
     public function __construct($value)
     {
-        $this->value = $value;
+        $this->setInternalValue($value);
     }
 }

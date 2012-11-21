@@ -9,7 +9,6 @@
  */
 class PInteger extends PNumber
 {
-
     /**
      * The constructor requires a value for initialisation.
      * 
@@ -21,10 +20,10 @@ class PInteger extends PNumber
     public function __construct($value)
     {
         if ($value instanceof PNumber) {
-            $this->value = $value->intValue();
+            $this->setInternalValue($value->intValue());
             return;
         } elseif (is_int($value)) {
-            $this->value = $value;
+            $this->setInternalValue($value);
             return;
         }
 
@@ -36,7 +35,7 @@ class PInteger extends PNumber
             }
         }
 
-        $this->value = intval($value);
+        $this->setInternalValue(intval($value));
     }
 
     /**
@@ -60,9 +59,9 @@ class PInteger extends PNumber
     public function compareTo($anotherInteger)
     {
         $int = self::decode($anotherInteger)->intValue();
-        if ($this->value > $int) {
+        if ($this->getInternalValue() > $int) {
             return self::COMPARE_GREATER_THAN_OTHER;
-        } elseif ($this->value < $int) {
+        } elseif ($this->getInternalValue() < $int) {
             return self::COMPARE_LESS_THAN_OTHER;
         }
 
@@ -109,7 +108,7 @@ class PInteger extends PNumber
     public function equals($object)
     {
         $object = self::decode($object);
-        return $object->intValue() == $this->value;
+        return $object->intValue() == $this->getInternalValue();
     }
 
     /**
@@ -121,7 +120,7 @@ class PInteger extends PNumber
      */
     public function hashCode()
     {
-        return (string) $this->value;
+        return $this->__toString();
     }
 
     /**

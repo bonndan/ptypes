@@ -27,7 +27,7 @@ abstract class PNumber extends PType /* implements Serializable */
      */
     public function doubleValue()
     {
-        return doubleval($this->value);
+        return doubleval($this->getInternalValue());
     }
 
     /**
@@ -37,7 +37,7 @@ abstract class PNumber extends PType /* implements Serializable */
      */
     public function floatValue()
     {
-        return floatval($this->value);
+        return floatval($this->getInternalValue());
     }
     
     /**
@@ -47,7 +47,7 @@ abstract class PNumber extends PType /* implements Serializable */
      */
     public function intValue()
     {
-        return intval($this->value);
+        return intval($this->getInternalValue());
     }
     
     /**
