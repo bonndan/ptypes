@@ -9,3 +9,4 @@ require_once  'PString.php';
 require_once  'PNumber.php';
 require_once  'PInteger.php';
 require_once  'PBool.php';
+require_once  'PFloat.php';
