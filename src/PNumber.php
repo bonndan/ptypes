@@ -8,7 +8,7 @@
  * @author Daniel Pozzi <bonndan76@googlemail.com>
  * @todo Serializable
  */
-abstract class PNumber extends PType /* implements Serializable */
+abstract class PNumber extends PType implements PComparable /*  Serializable */
 {
     /**
      * Returns the value of the specified number as a byte.

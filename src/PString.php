@@ -65,7 +65,7 @@
  * @link https://github.com/Matthimatiker/MolComponents
  * @since 14.06.2012
  */
-class PString extends PType implements IteratorAggregate, ArrayAccess, Countable
+class PString extends PType implements IteratorAggregate, ArrayAccess, Countable, PComparable
 {
     /**
      * The raw string value.

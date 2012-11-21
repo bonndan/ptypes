@@ -9,9 +9,15 @@ require_once dirname(__DIR__) . '/bootstrap.php';
  */
 class PNumberTest extends PHPUnit_Framework_TestCase
 {
-    public function testByteValue()
+    public function testImplementsPComparable()
     {
-        
+        $this->assertInstanceOf('PComparable', $this->getNumberMock(123));
+    }
+    
+    public function testByteValueException()
+    {
+        $this->setExpectedException('BadMethodCallException');
+        $this->getNumberMock(123)->byteValue();
     }
     
     /**
@@ -111,4 +117,10 @@ class PNumberMock extends PNumber
     {
         $this->setInternalValue($value);
     }
+    
+    public function compareTo($other)
+    {
+        //unused
+    }
+
 }

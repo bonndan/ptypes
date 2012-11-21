@@ -59,13 +59,15 @@ class PFloat extends PNumber
     /**
      * Compares two Float objects numerically.
      * 
+     * @param mixed $other
+     * 
      * @return int
      */
-    public function compareTo($anotherFloat)
+    public function compareTo($other)
     {
         return self::compare(
             $this->floatValue(),
-            self::valueOf($anotherFloat)->floatValue()
+            self::valueOf($other)->floatValue()
         );
     }
 

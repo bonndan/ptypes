@@ -52,13 +52,13 @@ class PInteger extends PNumber
     /**
      * Compares two Integer objects numerically.
      * 
-     * @param mixed $anotherInteger
+     * @param mixed $other
      * 
      * @return string
      */
-    public function compareTo($anotherInteger)
+    public function compareTo($other)
     {
-        $int = self::decode($anotherInteger)->intValue();
+        $int = self::decode($other)->intValue();
         if ($this->getInternalValue() > $int) {
             return self::COMPARE_GREATER_THAN_OTHER;
         } elseif ($this->getInternalValue() < $int) {
