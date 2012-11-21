@@ -1,8 +1,15 @@
 <?php
 /**
- * Class representing a charset
+ * PCharset
+ * 
+ * A class representing a charset. Parts of this code have been extracted from
+ * the MolComponents string class.
  *
- * @author daniel
+ * @copyright 2012 Matthias Molitor
+ * @license http://www.opensource.org/licenses/BSD-3-Clause BSD License
+ * @link https://github.com/Matthimatiker/MolComponents
+ * 
+ * @author Daniel Pozzi <bonndan76@googlemail.com>
  */
 class PCharset
 {
