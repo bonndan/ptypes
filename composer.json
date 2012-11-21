@@ -1,0 +1,10 @@
+{
+    "name": "bonndan/ptypes",
+    "type": "library",
+    "license": "BSD",
+    "autoload": {
+        "psr-0": {"": "src/"}
+    },
+    
+    "include-path": ["src/"]
+}
