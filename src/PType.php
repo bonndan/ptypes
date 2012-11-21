@@ -2,7 +2,7 @@
 /**
  * PType - base class for all types
  */
-abstract class PType
+abstract class PType implements Serializable
 {
     /**
      * Returns value used by compareTo().
@@ -70,4 +70,29 @@ abstract class PType
     {
         return $this->value;
     }
+    
+    /**
+     * serialization
+     * 
+     * Returns the inner value.
+     * 
+     * @return string|int|float|double|null
+     */
+    public function serialize()
+    {
+        return $this->getInternalValue();
+    }
+
+    /**
+     * unserialization
+     * 
+     * @param mixed $serialized
+     * @return void
+     * @throws LogicException
+     */
+    public function unserialize($serialized)
+    {
+        $this->setInternalValue($serialized);
+    }
+
 }

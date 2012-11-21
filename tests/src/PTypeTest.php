@@ -27,6 +27,27 @@ class PTypeTest extends PHPUnit_Framework_TestCase
         $this->getTypeMock(new stdClass());
     }
     
+    /**
+     * ensures the Serializable interface is implemented
+     */
+    public function testImplementsSerializable()
+    {
+        $res = $this->getTypeMock(1);
+        $this->assertInstanceOf('Serializable', $res);
+    }
+    
+    public function testSerialize()
+    {
+        $res = $this->getTypeMock(1);
+        $this->assertEquals(1, $res->serialize());
+    }
+    
+    public function testUnserialize()
+    {
+        $res = new PTypeMock(null);
+        $res->unserialize("123");
+        $this->assertEquals("123", $res->__toString());
+    }
     
     /**
      * creates a PNumber instance
